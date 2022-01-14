@@ -5,11 +5,14 @@ import SignInModal from "./components/SignInModal";
 import SignUpModal from "./components/SignUpModal";
 
 
+
 function App() {
   return (
     <>
-    <Navbar/>
+    
     <SignUpModal/>
+    <SignInModal/>
+    <Navbar/>
       <Routes>
         <Route path="/" element={<Home/>} />
       </Routes>
