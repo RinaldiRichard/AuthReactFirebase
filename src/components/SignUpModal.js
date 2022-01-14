@@ -1,9 +1,54 @@
 import React from "react";
-import { useContext } from "react";
+// 1 ref et state
+import { useContext, useRef, useState } from "react";
 import { UserContext } from "../context/userContext";
 
 export default function SignUpModal() {
-  const { toggleModal, modalState } = useContext(UserContext);
+  // context 4 -> rajout signUp
+  const { toggleModal, modalState, signUp } = useContext(UserContext);
+  console.log(signUp);
+  // 4
+  const [validation, setValidation] = useState("");
+
+  // 2 + rajout methode dans ref={} sur les inputs
+  const inputs = useRef([]);
+  const addInputs = (el) => {
+    if (el && !inputs.current.includes(el)) {
+      inputs.current.push(el);
+    }
+  };
+  //5 rajout ref={formRef} dans le form
+  const formRef = useRef();
+
+  // 3 + rajout methode handleForm dans onSubmit du form
+  //context 6 rajout async
+  const handleForm = async (e) => {
+    e.preventDefault();
+
+    if (
+      (inputs.current[1].value.length || inputs.current[2].value.length) < 6
+    ) {
+      setValidation("6 caractères minimum");
+      //Pour sortir de la fonction
+      return;
+    } else if (inputs.current[1].value !== inputs.current[2].value) {
+      setValidation("Les mots de passe ne correspondent pas");
+      return;
+    }
+
+    //context 5
+    try {
+      const cred = await signUp(
+        inputs.current[0].value,
+        inputs.current[1].value
+      );
+      formRef.current.reset();
+      setValidation("")
+      console.log(cred);
+    } catch (err) {
+
+    }
+  };
 
   return (
     <>
@@ -27,12 +72,17 @@ export default function SignUpModal() {
                 </div>
 
                 <div className="modal-body">
-                  <form className="sign-up-form">
+                  <form
+                    ref={formRef}
+                    onSubmit={handleForm}
+                    className="sign-up-form"
+                  >
                     <div className="mb-3">
                       <label htmlFor="signUpEmail" className="form-label">
                         Adresse email
                       </label>
                       <input
+                        ref={addInputs}
                         type="email"
                         name="email"
                         required
@@ -45,6 +95,7 @@ export default function SignUpModal() {
                         Mot de passe
                       </label>
                       <input
+                        ref={addInputs}
                         type="password"
                         name="password"
                         required
@@ -57,13 +108,14 @@ export default function SignUpModal() {
                         Confirmation du mot de passe
                       </label>
                       <input
+                        ref={addInputs}
                         type="password"
                         name="password"
                         required
                         className="form-control"
                         id="repeatPassword"
                       />
-                      <p className="text-danger mt-1"></p>
+                      <p className="text-danger mt-1">{validation}</p>
                     </div>
                     <button className="btn btn-primary">Envoyer</button>
                   </form>
