@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect } from "react";
-//1
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -9,20 +8,24 @@ import { auth } from "../firebase-config";
 
 export const UserContext = createContext();
 
-
-
-//3 + passer la méthode dans Provider
-const signUp = (email,pwd) => createUserWithEmailAndPassword(auth,email,pwd)
-
-
 export function UserContextProvider(props) {
-  //2
-const [currentUser, setCurrentUser] = useState()
-const [loadingData, setLoadingData] = useState(true)
+  const signUp = (email, pwd) =>
+    createUserWithEmailAndPassword(auth, email, pwd);
+  const signIn = (email, pwd) =>
+  signInWithEmailAndPassword(auth, email, pwd);
 
+  const [currentUser, setCurrentUser] = useState();
+  const [loadingData, setLoadingData] = useState(true);
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setCurrentUser(currentUser);
+      setLoadingData(false);
+    });
+    return unsubscribe;
+  }, []);
 
-const [modalState, setModalState] = useState({
+  const [modalState, setModalState] = useState({
     signInModal: false,
     signUpModal: false,
   });
@@ -47,8 +50,8 @@ const [modalState, setModalState] = useState({
   };
 
   return (
-    <UserContext.Provider value={{ modalState, toggleModal, signUp }}>
-      {props.children}
+    <UserContext.Provider value={{currentUser, modalState, toggleModal, signUp, signIn }}>
+      {!loadingData && props.children}
     </UserContext.Provider>
   );
 }

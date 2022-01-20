@@ -1,9 +1,48 @@
 import React from "react";
-import { useContext } from "react";
+import { useContext, useRef, useState } from "react";
 import { UserContext } from "../context/userContext";
+import { useNavigate } from "react-router";
 
-export default function SignInModal() {
-  const { toggleModal, modalState } = useContext(UserContext);
+export default function SignUpModal() {
+  const { toggleModal, modalState, signIn } = useContext(UserContext);
+
+  const navigate = useNavigate();
+
+  const [validation, setValidation] = useState("");
+  const [validMail, setValidMail] = useState("");
+
+  const inputs = useRef([]);
+  const addInputs = (el) => {
+    if (el && !inputs.current.includes(el)) {
+      inputs.current.push(el);
+    }
+  };
+
+  const formRef = useRef();
+
+  const resetText = () => {
+    setValidation("");
+    setValidMail("");
+  };
+  const handleForm = async (e) => {
+    e.preventDefault();
+
+    try {
+      const cred = await signIn(
+        inputs.current[0].value,
+        inputs.current[1].value
+      );
+
+      formRef.current.reset();
+      setValidation("");
+      console.log(cred);
+      navigate("/private/private-home");
+      toggleModal("close");
+    } catch (err) {
+      console.dir(err);
+      setValidation("Oups, l'email et/ou le mot de passe est incorrect !");
+    }
+  };
 
   return (
     <>
@@ -27,31 +66,41 @@ export default function SignInModal() {
                 </div>
 
                 <div className="modal-body">
-                  <form className="sign-up-form">
+                  <form
+                    ref={formRef}
+                    onSubmit={handleForm}
+                    className="sign-up-form"
+                  >
                     <div className="mb-3">
-                      <label htmlFor="signUpEmail" className="form-label">
+                      <label htmlFor="signInEmail" className="form-label">
                         Adresse email
                       </label>
                       <input
+                        ref={addInputs}
+                        onChange={resetText}
                         type="email"
                         name="email"
                         required
                         className="form-control"
-                        id="signUpEmail"
+                        id="signInEmail"
                       />
+                      <p className="text-danger mt-1">{validMail}</p>
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="signUpPassword" className="form-label">
+                      <label htmlFor="signInPassword" className="form-label">
                         Mot de passe
                       </label>
                       <input
+                        ref={addInputs}
+                        onChange={resetText}
                         type="password"
                         name="password"
                         required
                         className="form-control"
-                        id="signUpPassword"
+                        id="signInPassword"
                       />
                     </div>
+                    <p className="text-danger mt-1">{validation}</p>
                     <button className="btn btn-primary">Envoyer</button>
                   </form>
                 </div>

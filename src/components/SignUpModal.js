@@ -1,27 +1,29 @@
 import React from "react";
-// 1 ref et state
 import { useContext, useRef, useState } from "react";
 import { UserContext } from "../context/userContext";
+import { useNavigate } from "react-router";
 
 export default function SignUpModal() {
-  // context 4 -> rajout signUp
   const { toggleModal, modalState, signUp } = useContext(UserContext);
-  console.log(signUp);
-  // 4
-  const [validation, setValidation] = useState("");
 
-  // 2 + rajout methode dans ref={} sur les inputs
+  const navigate = useNavigate();
+
+  const [validation, setValidation] = useState("");
+  const [validMail, setValidMail] = useState("");
+
   const inputs = useRef([]);
   const addInputs = (el) => {
     if (el && !inputs.current.includes(el)) {
       inputs.current.push(el);
     }
   };
-  //5 rajout ref={formRef} dans le form
+
   const formRef = useRef();
 
-  // 3 + rajout methode handleForm dans onSubmit du form
-  //context 6 rajout async
+  const resetText = () => {
+    setValidation("");
+    setValidMail("");
+  };
   const handleForm = async (e) => {
     e.preventDefault();
 
@@ -29,24 +31,32 @@ export default function SignUpModal() {
       (inputs.current[1].value.length || inputs.current[2].value.length) < 6
     ) {
       setValidation("6 caractères minimum");
-      //Pour sortir de la fonction
       return;
     } else if (inputs.current[1].value !== inputs.current[2].value) {
       setValidation("Les mots de passe ne correspondent pas");
       return;
     }
 
-    //context 5
     try {
+
       const cred = await signUp(
         inputs.current[0].value,
         inputs.current[1].value
       );
-      formRef.current.reset();
-      setValidation("")
-      console.log(cred);
-    } catch (err) {
 
+      formRef.current.reset();
+      setValidation("");
+      console.log(cred);
+      navigate("/private/private-home")
+      toggleModal("close");
+
+    } catch (err) {
+      console.dir(err);
+      if (err.code === "auth/email-already-in-use") {
+        setValidMail("Adresse e-mail déjà utilisée");
+      } else if (err.code === "auth/invalid-email") {
+        setValidMail("Adresse email non valide");
+      }
     }
   };
 
@@ -83,12 +93,14 @@ export default function SignUpModal() {
                       </label>
                       <input
                         ref={addInputs}
+                        onChange={resetText}
                         type="email"
                         name="email"
                         required
                         className="form-control"
                         id="signUpEmail"
                       />
+                      <p className="text-danger mt-1">{validMail}</p>
                     </div>
                     <div className="mb-3">
                       <label htmlFor="signUpPassword" className="form-label">
@@ -96,6 +108,7 @@ export default function SignUpModal() {
                       </label>
                       <input
                         ref={addInputs}
+                        onChange={resetText}
                         type="password"
                         name="password"
                         required
@@ -109,6 +122,7 @@ export default function SignUpModal() {
                       </label>
                       <input
                         ref={addInputs}
+                        onChange={resetText}
                         type="password"
                         name="password"
                         required
